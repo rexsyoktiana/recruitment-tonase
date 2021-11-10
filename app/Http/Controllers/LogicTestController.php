@@ -9,7 +9,12 @@ class LogicTestController extends Controller
     public function index(int $id)
     {
         if (strlen($id) != 7) {
-            echo "digit id harus 7";
+            $response = [
+                'status'    =>  'error',
+                'data'      =>  ['id' => $id],
+                'message'   =>  'Digit id harus 7'
+            ];
+            return response()->json($response, 400);
         }
 
         $checkPrima = $this->checkPrima($id);
@@ -19,12 +24,22 @@ class LogicTestController extends Controller
                 $central = substr($id, -4);
                 $checkPrima = $this->checkPrima($central);
                 if ($checkPrima) {
-                    echo "Tengah";
+                    $response = [
+                        'status'    =>  'success',
+                        'data'      =>  ['id' => $id, 'position' => 'Tengah'],
+                        'message'   =>  'Berhasil menentukan posisi container'
+                    ];
+                    return response()->json($response, 200);
                 }
 
                 $right = substr($id, -3);
                 if ($right[0] == $right[1] && $right[1] == $right[2]) {
-                    echo "Kanan";
+                    $response = [
+                        'status'    =>  'success',
+                        'data'      =>  ['id' => $id, 'position' => 'Kanan'],
+                        'message'   =>  'Berhasil menentukan posisi container'
+                    ];
+                    return response()->json($response, 200);
                 }
 
                 $left = substr($id, -2);
@@ -32,18 +47,32 @@ class LogicTestController extends Controller
                 if ($checkPrima) {
                     $checkBerurutan = $this->checkBerurutan($left[0], $left[1]);
                     if ($checkBerurutan) {
-                        echo "left";
+                        $response = [
+                            'status'    =>  'success',
+                            'data'      =>  ['id' => $id, 'position' => 'Kanan'],
+                            'message'   =>  'Berhasil menentukan posisi container'
+                        ];
+                        return response()->json($response, 200);
                     }
                 }
             }
         } else {
             // Kondisi mengandung 0
             if (strpos($id, '0') !== false) {
-                echo "Reject";
-            }else{
-                echo "Dead";
+                $response = [
+                    'status'    =>  'success',
+                    'data'      =>  ['id' => $id, 'position' => 'Reject'],
+                    'message'   =>  'Berhasil menentukan posisi container'
+                ];
+                return response()->json($response, 200);
             }
         }
+        $response = [
+            'status'    =>  'error',
+            'data'      =>  ['id' => $id],
+            'message'   =>  'Tidak ada posisi yang sesuai'
+        ];
+        return response()->json($response, 400);
     }
 
     public function checkPrima($num)
