@@ -4,13 +4,17 @@ namespace App\Http\Controllers\Api;
 
 use App\Helpers\LogActivity;
 use App\Http\Controllers\Controller;
+use App\Mail\PasswordResetMail;
+use App\Models\PasswordReset;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Validation\Rules\Password;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -40,7 +44,12 @@ class AuthController extends Controller
         LogActivity::addToLog($request, "Login");
         $response = [
             'status'    =>  'success',
-            'data'      =>  $token,
+            'data'      =>  [
+                'id'    =>  Auth()->user()->id,
+                'email' =>  Auth()->user()->email,
+                'name'  =>  Auth()->user()->name,
+                'token' =>  $token,
+            ],
             'message'   =>  'berhasil login'
         ];
         return response()->json($response, 200);
@@ -84,5 +93,96 @@ class AuthController extends Controller
             'message'   =>  'berhasil register akun'
         ];
         return response()->json($response, 201);
+    }
+
+    public function reset(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'email' => 'required|email|exists:users,email',
+        ]);
+
+        if ($validator->fails()) {
+            $response = [
+                'status'    =>  'error',
+                'data'      =>  [],
+                'message'   =>  json_decode($validator->errors(), true, JSON_UNESCAPED_SLASHES),
+            ];
+            return response()->json($response, 400);
+        }
+
+        $token = Str::random(64);
+
+
+        PasswordReset::create([
+            'email' => $request->email,
+            'token' => $token,
+        ]);
+
+        $details = [
+            'title' => 'Mail from TONASE',
+            'body'  => 'Silahkan gunakan token dibawah ini untuk ganti password kamu',
+            'token' =>  $token,
+        ];
+
+        Mail::to($request->email)->send(new PasswordResetMail($details));
+
+        // Mail::send('email.forgetPassword', ['token' => $token], function ($message) use ($request) {
+        //     $message->to($request->email);
+        //     $message->subject('Reset Password');
+        // });
+    }
+
+    public function changePassword(Request $request, $token)
+    {
+        $validator = Validator::make($request->all(), [
+            'email'     => 'required|email|exists:users,email',
+            'password' => [
+                'required', 'string', 'confirmed', Password::min(7)
+                    ->letters()
+                    ->numbers()
+                    ->symbols()
+            ],
+        ]);
+
+        if ($validator->fails()) {
+            $response = [
+                'status'    =>  'error',
+                'data'      =>  [],
+                'message'   =>  json_decode($validator->errors(), true, JSON_UNESCAPED_SLASHES),
+            ];
+            return response()->json($response, 400);
+        }
+
+        $email = $request->email;
+        $password = $request->password;
+        $check = PasswordReset::where('email', '=', $email)->where('token', '=', $token)->first();
+
+        if(empty($check)){
+            $response = [
+                'status'    =>  'error',
+                'data'      =>  [],
+                'message'   =>  'email dan token tidak cocok',
+            ];
+            return response()->json($response, 400);
+        }
+
+        $checkPassword = User::where('email', '=', $email)->first();
+
+        if(password_verify($password, $checkPassword->password)){
+            $response = [
+                'status'    =>  'error',
+                'data'      =>  [],
+                'message'   =>  'Password harus berbeda dengan sebelumnya',
+            ];
+            return response()->json($response,400);
+        }
+
+        User::where('email', '=', $email)->update(['password' => Hash::make($password)]);
+        $response = [
+            'status'    =>  'success',
+            'data'      =>  [],
+            'message'   =>  'anda berhasil mengubah password',
+        ];
+        return response()->json($response, 400);
     }
 }

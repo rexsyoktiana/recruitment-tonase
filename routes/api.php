@@ -19,3 +19,5 @@ use Illuminate\Support\Facades\Route;
 Route::get('container/{id}', [LogicTestController::class, 'index']);
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
+Route::post('reset', [AuthController::class, 'reset']);
+Route::post('reset/{token}', [AuthController::class, 'changePassword']);
