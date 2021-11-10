@@ -66,6 +66,7 @@ class AuthController extends Controller
                     ->numbers()
                     ->symbols()
             ],
+            'rekening'  =>  'required|integer|unique:users,rekening'
         ]);
 
         if ($validator->fails()) {
@@ -81,6 +82,7 @@ class AuthController extends Controller
             'name' => $request->get('name'),
             'email' => $request->get('email'),
             'password' => Hash::make($request->get('password')),
+            'rekening'  =>  $request->get('rekening'),
         ]);
 
         $token = JWTAuth::fromUser($user);
@@ -157,7 +159,7 @@ class AuthController extends Controller
         $password = $request->password;
         $check = PasswordReset::where('email', '=', $email)->where('token', '=', $token)->first();
 
-        if(empty($check)){
+        if (empty($check)) {
             $response = [
                 'status'    =>  'error',
                 'data'      =>  [],
@@ -168,13 +170,13 @@ class AuthController extends Controller
 
         $checkPassword = User::where('email', '=', $email)->first();
 
-        if(password_verify($password, $checkPassword->password)){
+        if (password_verify($password, $checkPassword->password)) {
             $response = [
                 'status'    =>  'error',
                 'data'      =>  [],
                 'message'   =>  'Password harus berbeda dengan sebelumnya',
             ];
-            return response()->json($response,400);
+            return response()->json($response, 400);
         }
 
         User::where('email', '=', $email)->update(['password' => Hash::make($password)]);
