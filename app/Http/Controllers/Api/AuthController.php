@@ -66,7 +66,6 @@ class AuthController extends Controller
                     ->numbers()
                     ->symbols()
             ],
-            'rekening'  =>  'required|integer|unique:users,rekening'
         ]);
 
         if ($validator->fails()) {
@@ -82,7 +81,6 @@ class AuthController extends Controller
             'name' => $request->get('name'),
             'email' => $request->get('email'),
             'password' => Hash::make($request->get('password')),
-            'rekening'  =>  $request->get('rekening'),
         ]);
 
         $token = JWTAuth::fromUser($user);
