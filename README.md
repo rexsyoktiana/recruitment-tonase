@@ -9,6 +9,6 @@
     * MAIL_PASSWORD=your_password
     * MAIL_FROM_NAME=TONASE
 7.  Set up e-mail: Allow less secure apps: ON
-8.  Run php artisan key:generate.
-9.  Run php artisan migrate.
-10.  Run php artisan serve.
+8.  Run php artisan key:generate
+9.  Run php artisan migrate
+10.  Run php artisan serve
