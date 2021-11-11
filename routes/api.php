@@ -28,3 +28,5 @@ Route::get('user', [AuthController::class, 'user']);
 Route::post('topup', [PaymentController::class, 'topUp'])->middleware('jwt.verify');
 Route::post('withdraw', [PaymentController::class, 'withdraw'])->middleware('jwt.verify');
 Route::post('transfer', [PaymentController::class, 'transfer'])->middleware('jwt.verify');
+
+Route::get('mutasi', [PaymentController::class, 'mutasi'])->middleware('jwt.verify');

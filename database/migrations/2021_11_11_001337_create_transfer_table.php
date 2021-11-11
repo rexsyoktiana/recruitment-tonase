@@ -16,7 +16,7 @@ class CreateTransferTable extends Migration
         Schema::create('transfer', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('from');
-            $table->unsignedBigInteger('to');
+            $table->string('to');
             $table->unsignedInteger('jumlah');
             $table->timestamps();
         });

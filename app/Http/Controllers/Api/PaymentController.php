@@ -18,7 +18,7 @@ class PaymentController extends Controller
         $user = JWTAuth::parseToken()->authenticate();
 
         $validator = Validator::make($request->all(), [
-            'saldo'     => 'required|integer',
+            'jumlah'     => 'required|integer',
         ]);
 
         if ($validator->fails()) {
@@ -29,12 +29,12 @@ class PaymentController extends Controller
             ];
             return response()->json($response, 400);
         }
-        $saldo = $request->saldo;
-        User::where('id', '=', $user->id)->update(['saldo' => $user->saldo + $saldo]);
+        $jumlah = $request->jumlah;
+        User::where('id', '=', $user->id)->update(['saldo' => $user->saldo + $jumlah]);
 
         Topup::create([
             'user'      =>  $user->id,
-            'jumlah'    =>  $saldo
+            'jumlah'    =>  $jumlah
         ]);
 
         $response = [
@@ -129,7 +129,7 @@ class PaymentController extends Controller
         User::where('email', '=', $email)->update(['saldo' => $toUser->saldo + $jumlah]);
         Transfer::create([
             'from'      =>  $user->id,
-            'to'        =>  $toUser->id,
+            'to'        =>  $email,
             'jumlah'    =>  $jumlah
         ]);
 
@@ -143,6 +143,16 @@ class PaymentController extends Controller
 
     public function mutasi()
     {
-        
+        $user       = JWTAuth::parseToken()->authenticate();
+        $topup      = Topup::where('user', '=', $user->id)->get();
+        $withdraw   = Withdraw::where('user', '=', $user->id)->get();
+        $transfer   = Transfer::where('from', '=', $user->id)->get();
+        $response = [
+            'akun'      =>  $user,
+            'topup'     =>  $topup,
+            'withdraw'  =>  $withdraw,
+            'transfer'  =>  $transfer
+        ];
+        return response()->json($response, 200);
     }
 }

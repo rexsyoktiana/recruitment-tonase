@@ -66,7 +66,7 @@ class AuthController extends Controller
                     ->numbers()
                     ->symbols()
             ],
-            'rekening'  =>  'required|integer|unique:users,rekening'
+            'rekening'  =>  'required|integer|unique:users,rekening|min:8'
         ]);
 
         if ($validator->fails()) {
@@ -128,10 +128,13 @@ class AuthController extends Controller
 
         Mail::to($request->email)->send(new PasswordResetMail($details));
 
-        // Mail::send('email.forgetPassword', ['token' => $token], function ($message) use ($request) {
-        //     $message->to($request->email);
-        //     $message->subject('Reset Password');
-        // });
+        $response = [
+            'status'    =>  'success',
+            'data'      =>  [],
+            'message'   =>  'Token berhasil dikirim ke email'
+        ];
+
+        return response()->json($response, 200);
     }
 
     public function changePassword(Request $request, $token)
